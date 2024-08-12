@@ -10,6 +10,13 @@ dir.create(file.path(out_folder, 'SS_temp'))
 dir.create(file.path(out_folder, 'output_ssb_status'))
 dir.create(file.path(out_folder, 'output_catch'))
 
+
+# -------------------------------------------------------------------------
+# Read base model:
+base_model = SS_output(dir = file.path(grid_folder, model_name), 
+                       printstats = FALSE, verbose = FALSE)
+
+
 # --------------------------------------------------------------
 
 # Read base files:
@@ -47,7 +54,7 @@ tmp_df = base_model$catch %>%
                 filter(Yr %in% (first_proj_yr - scale_time*yr_avg_catch):(first_proj_yr - 1)) %>% 
                 select(Yr, Seas, Fleet, Obs)
 tmp_df = tmp_df %>% mutate(Seas = rep(1:n_times, length.out = nrow(tmp_df))) # Real season
-tmp_df = tmp_df %>% dplyr::group_by(Seas, Fleet) %>% dplyr::summarise(Catch = mean(Obs))
+tmp_df = tmp_df %>% dplyr::group_by(Seas, Fleet) %>% dplyr::summarise(Catch = mean(Obs), .groups = 'drop')
 base_proj = map(seq_len(n_proj_yr), ~tmp_df) %>% bind_rows()
 base_proj = base_proj[order(base_proj$Fleet), ]
 base_proj = base_proj %>% add_column(Yr = rep(rep(first_proj_yr:last_proj_yr, each = n_seasons), length.out = nrow(base_proj)), .before = 'Seas')
@@ -58,7 +65,7 @@ sp_proj = base_proj # this will be the TAC scenario
 # sp_proj %>% filter(Yr < (first_proj_yr + 4)) %>% summarise(totcatch = sum(Catch))
 
 # Calculate annual total catch during projection period:
-catch_proj_df = base_proj %>% group_by(Fleet) %>% summarise(Catch = mean(Catch))
+catch_proj_df = base_proj %>% group_by(Fleet) %>% summarise(Catch = mean(Catch), .groups = 'drop')
 year_catch_proj = sum(catch_proj_df$Catch)*n_times
 mult_factor = catch_TAC/year_catch_proj
 
@@ -72,6 +79,8 @@ if(do_closure_from_TAC) initial_proj = sp_proj
 # -------------------------------------------------------------------------
 all_proj_yr = first_proj_yr:last_proj_yr # number of projection years
 base_factor = base_proj[,c('Yr', 'Seas', 'Fleet')] # will be replaced later
+base_factor$Seas_proj = rep(1:n_times, length.out = nrow(base_factor)) # Real season
+base_factor$Yr_proj = rep(rep(1:n_proj_yr, each = n_times), length.out = nrow(base_factor)) # Real year
 proj_scenario = list() # savel proj catch df
 id_list = 1
 
@@ -101,6 +110,7 @@ r4ss::run(dir = file.path(main_folder, 'SS_temp'), extras = '-maxfn 0 -phase 50 
           verbose = FALSE, skipfinished = FALSE)
 # Produce outputs:
 extract_outputs(scen_name)
+cat("Scenario ", scen_name, " done", "\n")
 
 # -------------------------------------------------------------------------
 # TAC scenario
@@ -121,6 +131,7 @@ r4ss::run(dir = file.path(main_folder, 'SS_temp'), extras = '-maxfn 0 -phase 50 
           verbose = FALSE, skipfinished = FALSE) 
 # Produce outputs:
 extract_outputs(scen_name)
+cat("Scenario ", scen_name, " done", "\n")
 
 # -------------------------------------------------------------------------
 # Close all fisheries for all seasons
@@ -142,6 +153,7 @@ r4ss::run(dir = file.path(main_folder, 'SS_temp'), extras = '-maxfn 0 -phase 50 
           verbose = FALSE, skipfinished = FALSE) 
 # Produce outputs:
 extract_outputs(scen_name)
+cat("Scenario ", scen_name, " done", "\n")
 
 # -------------------------------------------------------------------------
 # Closure scenarios
@@ -179,6 +191,7 @@ for(s in seq_along(redist_strat)) {
                 verbose = FALSE, skipfinished = FALSE) 
       # Produce outputs:
       extract_outputs(scen_name)
+      cat("Scenario ", scen_name, " done", "\n")
       
     } # season loop
     
@@ -212,6 +225,7 @@ for(s in seq_along(redist_strat)) {
                   verbose = FALSE, skipfinished = FALSE) 
         # Produce outputs:
         extract_outputs(scen_name)
+        cat("Scenario ", scen_name, " done", "\n")
         
       } # fleet loop
     } # season loop
@@ -248,7 +262,7 @@ for(s in seq_along(redist_strat)) {
                       verbose = FALSE, skipfinished = FALSE) 
             # Produce outputs:
             extract_outputs(scen_name)
-            
+            cat("Scenario ", scen_name, " done", "\n")
             
         } # season loop
         

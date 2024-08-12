@@ -5,8 +5,9 @@ require(dplyr)
 require(purrr)
 require(tibble)
 
-# Configure the forecast parameters:
+# Read the forecast settings:
 source('config_params.R')
 
 # Run scenarios:
+# This might take a while.
 source('forecast_closure.R')

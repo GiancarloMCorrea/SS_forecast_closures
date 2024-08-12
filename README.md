@@ -1,26 +1,28 @@
 # Impacts of temporal closure scenarios on stock status
 
-Evaluate the impacts of seasonal fisheries closure scenarios on stock status during a projection period using [Stock Synthesis](https://vlab.noaa.gov/web/stock-synthesis) (SS). 
+Evaluate the impacts of seasonal fisheries closures on the stock status during a projection period using [Stock Synthesis](https://vlab.noaa.gov/web/stock-synthesis) (SS). 
 
 You need to have a stock assessment model implemented in SS. The SS model could have multiple seasons, or use the semesters-as-years or quarters-as-years approach.
 
 ## Closure scenarios
 
-We evaluate the impacts of fleet-by-fleet and all-fleets-at-once seasonal closures on spawning biomass (SSB), stock status ($B/B_{msy}$ and $F/F_{msy}$), and catch during a projection period.
+We evaluate the impacts of fleet-by-fleet and all-fleets-at-once seasonal closures on spawning biomass (SSB), stock status ($B/B_{msy}$ and $F/F_{msy}$), and catch during a **projection period**.
 
-In addition to the evaluated closure scenarios, we also assess these projection scenarios:
+In addition to the evaluated closure scenarios, we also assess these projection scenarios with no closures:
 
-- *status-quo*: assumes an average catch per fleet and season from the last years.
+- *status-quo*: assumes an average catch per fleet and season from the last years of the assessment period.
 - *TAC*: assumes a total annual catch equal to a Total Allowable Catch (TAC). Projected catch per fleet and season is calculated from the *status-quo* scenario, and then increased or decreased proportionally to reach the TAC.
-- *all-closed*: assumes zero catch for all fleets and seasons.
+- *all-closed*: assumes zero catch for all fleets and seasons. This is an unrealistic scenario but useful for comparison.
 
 ## Things to consider
 
 - Your SS forecast and starter file should be named `forecast.ss` and `starter.ss`, respectively.
-- Double check your forecast file to make sure you are using the desired projection configuration.
+- Be aware of the projection configuration in your forecast file.
 - The current code works with MSY-based reference points, but could be easily adapted to any type of reference point. Contact me if you have questions.
 
 ## Steps to run this analysis
 
 1. Open `config_params.R` and specify the configuration parameters. Follow the inscructions in that script.
-2. Run `run_forecast.R`. You will see that several files are created in your working directory, depending on how many scenarios you ran.
+2. Run `run_forecast.R`. You will see that three folders will be created (`output_catch`, `output_ssb_status`, `SS_temp`), and several RDS files are created in them, depending on how many scenarios you ran.
+3. Make plots to summarise using `make_figures.R`. Modify the code as desired.
+4. Produce an summary table in Word by running `make_table.qmd`. Modify the code as needed based on the closure scenarios.

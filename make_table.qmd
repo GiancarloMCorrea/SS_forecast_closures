@@ -1,0 +1,57 @@
+---
+title: "Closure tables"
+author: "Author name"
+format: docx
+editor: source
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+require(knitr)
+require(dplyr)
+require(readr)
+require(purrr)
+options(knitr.kable.NA = '-')
+```
+
+## My species name
+
+```{r}
+#| label: tbl-sp1
+#| tbl-cap: "Species name. Impacts of closure scenarios on the stock status by the end of a 10-year projection period. The TAC scenario did not implement any closure. PS-LS = FAD fishery. LS-FS = interaction between FAD and free school purse seine fisheries."
+#| tbl-colwidths: [60,40]
+#| echo: false
+#| message: false
+#| warning: false
+
+# Read outputs in:
+source('config_params.R')
+ssb_status_files = list.files(file.path(out_folder, 'output_ssb_status'), full.names = TRUE)
+ssb_status_df = ssb_status_files %>% map(readRDS) %>% bind_rows()
+mytable = ssb_status_df %>% dplyr::filter(Proj_yr == n_proj_yr) %>% 
+                  select(cfleet, cseason, fraction, strat, BBmsy, FFmsy) %>%
+                  mutate(cseason = paste0('Q', cseason))
+# NA in rows without cseason fraction strat information:
+mytable[which(mytable$fraction == '0'), c('cseason', 'fraction', 'strat')] = NA
+# Replace number of months closed based on 'fraction' column:
+mytable$fraction[mytable$fraction == '1'] = '3'
+mytable$fraction[mytable$fraction == '0.66'] = '2'
+mytable$fraction[mytable$fraction == '0.33'] = '1'
+# Replace redistribution of closed catch based on 'strat' column
+mytable$strat = as.character(mytable$strat)
+mytable$strat[mytable$strat == '1'] = '100'
+mytable$strat[mytable$strat == '0.5'] = '50'
+mytable$strat[mytable$strat == '0'] = '0'
+# Change fleet names:
+mytable$cfleet[mytable$cfleet == 'all'] = 'All fleets'
+mytable$cfleet[mytable$cfleet == 'status-quo'] = 'Status quo'
+# Round status values:
+mytable$BBmsy = round(mytable$BBmsy, digits = 3)
+mytable$FFmsy = round(mytable$FFmsy, digits = 3)
+# Change column name
+colnames(mytable) = c('Closed fleet', 'Closed season', 'No. months closed', 'Redistribution (%)', 'B/Bmsy', 'F/Fmsy')
+
+kable(mytable)
+```
