@@ -23,6 +23,6 @@ In addition to the evaluated closure scenarios, we also assess these projection 
 ## Steps to run this analysis
 
 1. Open `config_params.R` and specify the configuration parameters. Follow the inscructions in that script.
-2. Run `run_forecast.R`. You will see that three folders will be created (`output_catch`, `output_ssb_status`, `SS_temp`), and several RDS files are created in them, depending on how many scenarios you ran.
+2. Run `run_forecast.R`. You will see that three folders are created (`output_catch`, `output_ssb_status`, `SS_temp`), and several RDS files are stored in them. This step might take a while.
 3. Make plots to summarise using `make_figures.R`. Modify the code as desired.
 4. Produce an summary table in Word by running `make_table.qmd`. Modify the code as needed based on the closure scenarios.
