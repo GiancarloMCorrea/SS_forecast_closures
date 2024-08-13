@@ -8,10 +8,10 @@ You need to have a stock assessment model implemented in SS. The SS model could 
 
 We evaluate the impacts of fleet-by-fleet and all-fleets-at-once seasonal closures on spawning biomass (SSB), stock status ($B/B_{msy}$ and $F/F_{msy}$), and catch during a **projection period**.
 
-In addition to the evaluated closure scenarios, we also assess these projection scenarios with no closures:
+In addition to the evaluated closure scenarios, we also assess these projection scenarios:
 
-- *status-quo*: assumes an average catch per fleet and season from the last years of the assessment period.
-- *TAC*: assumes a total annual catch equal to a Total Allowable Catch (TAC). Projected catch per fleet and season is calculated from the *status-quo* scenario, and then increased or decreased proportionally to reach the TAC.
+- *status-quo*: assumes an average catch per fleet and season from the last years of the assessment period. No closures applied.
+- *TAC*: assumes a total annual catch equal to a Total Allowable Catch (TAC). Projected catch per fleet and season is calculated from the *status-quo* scenario, and then increased or decreased proportionally to reach the TAC. No closures applied.
 - *all-closed*: assumes zero catch for all fleets and seasons. This is an unrealistic scenario but useful for comparison.
 
 ## Things to consider
