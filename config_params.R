@@ -13,13 +13,20 @@ model_name = '22_ref_case'
 
 # Path where outputs from this analysis will be saved:
 out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2024/YFT_closure'
-dir.create(out_folder)
+dir.create(out_folder, showWarnings = FALSE)
 
 # Path where SS executable is located:
 ss_folder = 'C:/Use/OneDrive - AZTI/Codes'
 
 # SS executable name in 'ss_folder':
 ss_exe = 'ss.exe'
+
+
+# -------------------------------------------------------------------------
+# Read base model:
+base_model = SS_output(dir = file.path(grid_folder, model_name), 
+                       printstats = FALSE, verbose = FALSE)
+
 
 # -------------------------------------------------------------------------
 # Projection configuration ------------------------------------------------
@@ -34,15 +41,26 @@ yr_avg_catch = 3
 rec_type = 'deterministic'
 # Stochastic option not implemented yet
 
-# Fleet codes:
-fleet_codes = c('FS', 'FS', 'FS', 'FOB', 'BB', 'BB', 'BB',
-                'BB', 'BB', 'LL', 'LL', 'LL', 'LL', 'LL', 'LL',
-                'HL', 'USRR', 'PSWEST', 'OTH')
-# This is a vector with length equal to the number of fisheries in the SS model, and specifies
-# the real fisheries in the SS model.
-# Follow the pattern obtained from:
-# base_model = SS_output(dir = file.path(grid_folder, model_name))
-# base_model$FleetNames[base_model$fleet_type == 1]
+
+# -------------------------------------------------------------------------
+# Fleet information:
+
+# Inspect the fisheries in SS model:
+fleet_info = base_model$definitions %>% dplyr::filter(fleet_type == 1)
+fleet_info
+
+# Add a character column to differentiate real fleets. 
+# Closures will be applied to these fleets:
+fleet_info$real_fleet_name = c('PS', 'PS', 'FS', 'FOB', 'BBPSGhana', 'BB', 'BBDAKAR',
+                               'BB', 'BB', 'LL', 'LL', 'LL', 'LL', 'LL', 'LL',
+                               'HL', 'US_RR', 'PSWEST', 'OTH')
+
+# Fleet active:
+# You dont probably want to evaluate closures for all fleets, so here you can
+# select the fleets to evaluate:
+fleet_info_std = data.frame(real_fleet_name = unique(fleet_info$real_fleet_name))
+fleet_info_std$fleet_active = c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, TRUE,
+                                TRUE, TRUE, TRUE, TRUE)
 
 # -------------------------------------------------------------------------
 # Closures configuration --------------------------------------------------

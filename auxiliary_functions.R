@@ -8,8 +8,6 @@ dist_catch = function (data, factor2) {
 }
 
 dist_catch_cross = function (data, factor2, fleet1, fleet2) {
-  # fleet 1: PSLF
-  # fleet 2: PSFS
   if(length(fleet1) != length(fleet2)) stop("'fleet1' and 'fleet2' should have the same length")
   outData = data %>% mutate(FinalCatch = YesCatch)
   for(m in seq_along(fleet1)) {

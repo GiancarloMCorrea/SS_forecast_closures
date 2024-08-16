@@ -6,16 +6,9 @@ options(max.print=4000)
 main_folder = out_folder
 
 # Create folder where SS temporal files will be saved:
-dir.create(file.path(out_folder, 'SS_temp'))
-dir.create(file.path(out_folder, 'output_ssb_status'))
-dir.create(file.path(out_folder, 'output_catch'))
-
-
-# -------------------------------------------------------------------------
-# Read base model:
-base_model = SS_output(dir = file.path(grid_folder, model_name), 
-                       printstats = FALSE, verbose = FALSE)
-
+dir.create(file.path(out_folder, 'SS_temp'), showWarnings = FALSE)
+dir.create(file.path(out_folder, 'output_ssb_status'), showWarnings = FALSE)
+dir.create(file.path(out_folder, 'output_catch'), showWarnings = FALSE)
 
 # --------------------------------------------------------------
 
@@ -35,13 +28,14 @@ base_starter$F_age_range = c(1, max(base_model$endgrowth$int_Age))
 base_starter$F_report_basis = 2 # F/Fmsy
 
 # -------------------------------------------------------------------------
-# Define real fleets indices:
-n_fleets = sum(base_model$definitions$fleet_type == 1) # number of fisheries (exclude indices)
-fleet_info = data.frame(fleet_number = 1:n_fleets,
-                        real_fleet_name = fleet_codes)
-real_fleet_names = unique(fleet_codes)
-n_real_fleets = length(real_fleet_names)
+# Number of fisheries in SS model (exclude indices)
+n_fleets = nrow(fleet_info) 
+# Rename column:
+fleet_info = fleet_info %>% dplyr::rename(fleet_number = Fleet)
 
+# Select only active fleets
+real_fleet_names = fleet_info_std$real_fleet_name[fleet_info_std$fleet_active]
+n_real_fleets = length(real_fleet_names)
 
 # -------------------------------------------------------------------------
 # Create base forecast catch df:
