@@ -21,6 +21,10 @@ base_model = SS_output(dir = file.path(grid_folder, model_name),
 
 # Read base files:
 base_fore = SS_readforecast(file = file.path(grid_folder, model_name, 'forecast.ss'), verbose = FALSE)
+base_fore$Nforecastyrs = n_proj_yr
+base_fore$benchmarks = 1
+base_fore$MSY = 2
+
 base_starter = SS_readstarter(file = file.path(grid_folder, model_name, 'starter.ss'), verbose = FALSE)
 base_starter$init_values_src = 1 # use par file
 base_starter$depl_basis = 2 # use Bmsy
@@ -64,9 +68,10 @@ sp_proj = base_proj # this will be the TAC scenario
 # Tot catch:
 # sp_proj %>% filter(Yr < (first_proj_yr + 4)) %>% summarise(totcatch = sum(Catch))
 
-# Calculate annual total catch during projection period:
-catch_proj_df = base_proj %>% group_by(Fleet) %>% summarise(Catch = mean(Catch), .groups = 'drop')
-year_catch_proj = sum(catch_proj_df$Catch)*n_times
+# Calculate annual total catch per fleet during projection period:
+catch_proj_df = tmp_df %>% 
+  group_by(Fleet) %>% summarise(Catch = sum(Catch), .groups = 'drop')
+year_catch_proj = sum(catch_proj_df$Catch)
 mult_factor = catch_TAC/year_catch_proj
 
 # Reduce proj catch for TAC scenario:
