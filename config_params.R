@@ -3,16 +3,16 @@
 # Path configuration parameters ------------------------------------------------
 
 # Stock identifier:
-stock_id = 'BET'
+stock_id = 'SKJ'
 
 # Path where your SS model is saved. 
-grid_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2021/BET'
+grid_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2022/SKJ'
 
 # SS model folder name (should be located in 'grid_folder'):
-model_name = 'M20_h0.8_sigmaR0.4'
+model_name = 'noBuoy_50thGrowth_h0.8'
 
 # Path where outputs from this analysis will be saved:
-out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2021/BET_closure'
+out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2022/SKJ_closure'
 dir.create(out_folder, showWarnings = FALSE)
 
 # Path where SS executable is located:
@@ -52,10 +52,7 @@ fleet_info
 # Add a character column to differentiate real fleets. 
 # Closures will be applied to these fleets:
 fleet_info$real_fleet_name = c('PS', 'PS', 'FS', 'FOB', 'BBPSGhana', 
-                               'BB', 'BB', 'BB', 'BB', 'LL',
-                               'LL','LL','LL','LL','LL',
-                               'LL', 'LL','LL','OTH','OTH',
-                               'OTH','OTH')
+                               'BB', 'BB', 'BB', 'BB', 'LL')
 # Save fleet infomation for reporting:
 write.csv(fleet_info, file = file.path(out_folder, paste0(stock_id, '-fleet_information.csv')), row.names = FALSE)
 
@@ -63,7 +60,7 @@ write.csv(fleet_info, file = file.path(out_folder, paste0(stock_id, '-fleet_info
 # You dont probably want to evaluate closures for all fleets, so here you can
 # select the fleets to evaluate:
 fleet_info_std = data.frame(real_fleet_name = unique(fleet_info$real_fleet_name))
-fleet_info_std$fleet_active = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE)
+fleet_info_std$fleet_active = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE)
 
 # -------------------------------------------------------------------------
 # Closures configuration --------------------------------------------------
@@ -82,7 +79,7 @@ redist_strat = c(1, 0.5, 0) # Reallocation strategy
 interact_fleet = list(c('FOB', 'FS'))
 
 # Annual TAC during projection period
-catch_TAC = 62000 # in tons
+catch_TAC = 220000 # in tons
 
 # Closure scenarios from TAC or status-quo?
 do_closure_from_TAC = FALSE

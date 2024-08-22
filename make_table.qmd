@@ -12,22 +12,21 @@ editor: source
 require(knitr)
 require(dplyr)
 require(readr)
+require(r4ss)
 require(purrr)
 options(knitr.kable.NA = '-')
+# Read config in:
+source('config_params.R')
 ```
-
-## My species name
 
 ```{r}
 #| label: tbl-sp1
-#| tbl-cap: "Species name. Impacts of closure scenarios on the stock status by the end of a 10-year projection period. The TAC scenario did not implement any closure. PS-LS = FAD fishery. LS-FS = interaction between FAD and free school purse seine fisheries."
+#| tbl-cap: !expr paste0(stock_id, ". Impacts of closure scenarios on the stock status by the end of a 10-year projection period. The TAC scenario did not implement any closure. FOB-FS = interaction between FOB and free school purse seine fisheries.")
 #| tbl-colwidths: [60,40]
 #| echo: false
 #| message: false
 #| warning: false
 
-# Read outputs in:
-source('config_params.R')
 ssb_status_files = list.files(file.path(out_folder, 'output_ssb_status'), full.names = TRUE)
 ssb_status_df = ssb_status_files %>% map(readRDS) %>% bind_rows()
 mytable = ssb_status_df %>% dplyr::filter(Proj_yr == n_proj_yr) %>% 
@@ -53,5 +52,5 @@ mytable$FFmsy = round(mytable$FFmsy, digits = 3)
 # Change column name
 colnames(mytable) = c('Closed fleet', 'Closed season', 'No. months closed', 'Redistribution (%)', 'B/Bmsy', 'F/Fmsy')
 
-kable(mytable)
+kable(mytable, digits = 3)
 ```
