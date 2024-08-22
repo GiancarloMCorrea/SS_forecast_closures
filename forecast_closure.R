@@ -9,23 +9,46 @@ main_folder = out_folder
 dir.create(file.path(out_folder, 'SS_temp'), showWarnings = FALSE)
 dir.create(file.path(out_folder, 'output_ssb_status'), showWarnings = FALSE)
 dir.create(file.path(out_folder, 'output_catch'), showWarnings = FALSE)
+# Folder to run the selected model again, making sure that the forecast is active
+# This is important since ss.par is used and it needs to have the right dimensions for forecast rec
+dir.create(file.path(out_folder, 'base_with_forecast'), showWarnings = FALSE)
 
 # --------------------------------------------------------------
 
 # Read base files:
-base_fore = SS_readforecast(file = file.path(grid_folder, model_name, 'forecast.ss'), verbose = FALSE)
-base_fore$Nforecastyrs = n_proj_yr
+base_fore = SS_readforecast(file = file.path(grid_folder, model_name, 'forecast.ss'), verbose = FALSE, readAll = TRUE)
 base_fore$benchmarks = 1
 base_fore$MSY = 2
+base_fore$Forecast = 2 # Fmsy
+base_fore$basis_for_fcast_catch_tuning = 2
+base_fore$InputBasis = 2
+base_fore$Nforecastyrs = n_proj_yr
 
 base_starter = SS_readstarter(file = file.path(grid_folder, model_name, 'starter.ss'), verbose = FALSE)
-base_starter$init_values_src = 1 # use par file
+base_starter$init_values_src = 0 # use control file
 base_starter$depl_basis = 2 # use Bmsy
 base_starter$depl_denom_frac = 1 # B/Bmsy
 base_starter$SPR_basis = 2 
 base_starter$F_report_units = 4 # avg F ages
 base_starter$F_age_range = c(1, max(base_model$endgrowth$int_Age))
 base_starter$F_report_basis = 2 # F/Fmsy
+
+# Copy files from selected model folder
+r4ss::copy_SS_inputs(dir.old = file.path(grid_folder, model_name), 
+                     dir.new = file.path(main_folder, 'base_with_forecast'), verbose = FALSE, 
+                     copy_par = FALSE)
+# Replace starter and forecast:
+SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'base_with_forecast'), overwrite = TRUE)
+SS_writeforecast(mylist = base_fore, dir = file.path(main_folder, 'base_with_forecast'), overwrite = TRUE)
+
+# Run base model with forecast:
+cat("Running base model with forecast...", "\n")
+r4ss::run(dir = file.path(main_folder, 'base_with_forecast'), extras = '-nohess', exe = file.path(ss_folder, ss_exe), 
+          verbose = FALSE, skipfinished = FALSE)
+
+# Now use ss.par in starter  and replace in SS_temp:
+base_starter$init_values_src = 1 # use par file
+SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
 
 # -------------------------------------------------------------------------
 # Number of fisheries in SS model (exclude indices)
@@ -67,6 +90,7 @@ catch_proj_df = tmp_df %>%
   group_by(Fleet) %>% summarise(Catch = sum(Catch), .groups = 'drop')
 year_catch_proj = sum(catch_proj_df$Catch)
 mult_factor = catch_TAC/year_catch_proj
+cat("Mult factor to reach TAC is", round(mult_factor, 2), "\n")
 
 # Reduce proj catch for TAC scenario:
 sp_proj$Catch = sp_proj$Catch*mult_factor
@@ -85,16 +109,17 @@ id_list = 1
 
 # Start running scenarios --------------------------------------------------------------
 # Copy files to temp folder:
-r4ss::copy_SS_inputs(dir.old = file.path(grid_folder, model_name), 
-                     dir.new = file.path(main_folder, 'SS_temp'), verbose = FALSE, copy_par = TRUE)
+r4ss::copy_SS_inputs(dir.old = file.path(main_folder, 'base_with_forecast'), 
+                     dir.new = file.path(main_folder, 'SS_temp'), verbose = FALSE, 
+                     copy_par = TRUE)
 # Copy BAT to remove SS files:
 # file.copy(from = 'del.bat', to = file.path(main_folder, 'SS_temp'))
+n_scenarios = 3 + length(redist_strat)*length(close_fraction)*(n_times + n_times*n_real_fleets + n_times*length(interact_fleet))
+cat(n_scenarios, " scenarios will be run:", "\n")
 
 # -------------------------------------------------------------------------
 # Status-quo scenario: average catch per fleet is projected
 scen_name = 'status-quo_seas_0_fraction_0_strat_0'
-# Replaced by base_starter
-SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
 # create new forecast catch df:
 tmp_proj = base_factor 
 tmp_proj = left_join(base_proj, tmp_proj, by=c('Yr', 'Seas', 'Fleet'))
@@ -109,13 +134,13 @@ r4ss::run(dir = file.path(main_folder, 'SS_temp'), extras = '-maxfn 0 -phase 50 
           verbose = FALSE, skipfinished = FALSE)
 # Produce outputs:
 extract_outputs(scen_name)
+# Remove files in SS_temp:
+remove_SS_outfiles()
 cat("Scenario ", scen_name, " done", "\n")
 
 # -------------------------------------------------------------------------
 # TAC scenario
 scen_name = 'TAC_seas_0_fraction_0_strat_0'
-# Replaced by base_starter
-SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
 # create new forecast catch df:
 tmp_proj = base_factor 
 tmp_proj = left_join(sp_proj, tmp_proj, by=c('Yr', 'Seas', 'Fleet'))
@@ -130,13 +155,13 @@ r4ss::run(dir = file.path(main_folder, 'SS_temp'), extras = '-maxfn 0 -phase 50 
           verbose = FALSE, skipfinished = FALSE) 
 # Produce outputs:
 extract_outputs(scen_name)
+# Remove files in SS_temp:
+remove_SS_outfiles()
 cat("Scenario ", scen_name, " done", "\n")
 
 # -------------------------------------------------------------------------
 # Close all fisheries for all seasons
 scen_name = 'all_seas_all_fraction_0_strat_0'
-# Replaced by base_starter
-SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
 # create new forecast catch df:
 tmp_proj = base_factor 
 tmp_proj = left_join(initial_proj, tmp_proj, by=c('Yr', 'Seas', 'Fleet'))
@@ -152,6 +177,8 @@ r4ss::run(dir = file.path(main_folder, 'SS_temp'), extras = '-maxfn 0 -phase 50 
           verbose = FALSE, skipfinished = FALSE) 
 # Produce outputs:
 extract_outputs(scen_name)
+# Remove files in SS_temp:
+remove_SS_outfiles()
 cat("Scenario ", scen_name, " done", "\n")
 
 # -------------------------------------------------------------------------
@@ -167,8 +194,6 @@ for(s in seq_along(redist_strat)) {
       
       # Create model directory and copy SS files:
       scen_name = paste0('all_seas_', i,'_fraction_', close_fraction[k], '_strat_', redist_strat[s])
-      # Replaced by base_starter
-      SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
       # create new forecast catch df:
       tmp_proj = base_factor %>% 
         mutate(Factor = ifelse(Seas_proj == i, (1-close_fraction[k]), 1))
@@ -190,6 +215,8 @@ for(s in seq_along(redist_strat)) {
                 verbose = FALSE, skipfinished = FALSE) 
       # Produce outputs:
       extract_outputs(scen_name)
+      # Remove files in SS_temp:
+      remove_SS_outfiles()
       cat("Scenario ", scen_name, " done", "\n")
       
     } # season loop
@@ -201,8 +228,6 @@ for(s in seq_along(redist_strat)) {
         these_fleets = fleet_info %>% filter(real_fleet_name == real_fleet_names[j]) %>% select(fleet_number)
         # Create model directory and copy SS files:
         scen_name = paste0(real_fleet_names[j], '_seas_', i,'_fraction_', close_fraction[k], '_strat_', redist_strat[s])
-        # Replaced by base_starter
-        SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
         # create new forecast catch df:
         tmp_proj = base_factor %>% 
           mutate(Factor = ifelse(Seas_proj == i & Fleet %in% these_fleets$fleet_number, (1-close_fraction[k]), 1))
@@ -224,6 +249,8 @@ for(s in seq_along(redist_strat)) {
                   verbose = FALSE, skipfinished = FALSE) 
         # Produce outputs:
         extract_outputs(scen_name)
+        # Remove files in SS_temp:
+        remove_SS_outfiles()
         cat("Scenario ", scen_name, " done", "\n")
         
       } # fleet loop
@@ -238,8 +265,6 @@ for(s in seq_along(redist_strat)) {
             fleets_2 = fleet_info %>% filter(real_fleet_name == interact_fleet[[l]][2]) %>% select(fleet_number) # 'to' fleet
             # Create model directory and copy SS files:
             scen_name = paste0(interact_fleet[[l]][1], '-', interact_fleet[[l]][2], '_seas_', i,'_fraction_', close_fraction[k], '_strat_', redist_strat[s])
-            # Replaced by base_starter
-            SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
             # create new forecast catch df:
             tmp_proj = base_factor %>% 
               mutate(Factor = ifelse(Seas_proj == i & Fleet %in% fleets_1$fleet_number, (1-close_fraction[k]), 1))
@@ -261,6 +286,8 @@ for(s in seq_along(redist_strat)) {
                       verbose = FALSE, skipfinished = FALSE) 
             # Produce outputs:
             extract_outputs(scen_name)
+            # Remove files in SS_temp:
+            remove_SS_outfiles()
             cat("Scenario ", scen_name, " done", "\n")
             
         } # season loop
@@ -271,4 +298,3 @@ for(s in seq_along(redist_strat)) {
   } # factor loop
   
 } # strat loop
-

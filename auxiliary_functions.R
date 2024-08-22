@@ -18,9 +18,10 @@ dist_catch_cross = function (data, factor2, fleet1, fleet2) {
   return(outData)
 }
 
-remove_SS_files = function(dir) {
+remove_SS_outfiles = function(dir = file.path(main_folder, 'SS_temp')) {
   
-  mod_dir = gsub(pattern = '/', replacement = '\\\\', x = dir)
-  shell.exec(mod_dir)
+  out_files = list.files(path = dir)
+  pos_to_remove = grep(pattern = '.sso', x = out_files)
+  file.remove(file.path(dir, out_files[pos_to_remove]))
   
 }
