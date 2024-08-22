@@ -17,6 +17,8 @@ ssb_status_df = ssb_status_files %>% map(readRDS) %>% bind_rows()
 # Fill in fleet label:
 catch_df$Fleet_label = fleet_info$real_fleet_name[catch_df$Fleet]
 
+# Save output data frame:
+saveRDS(ssb_status_df, file = file.path(out_folder, paste0(stock_id, '_ssb_status.rds')))
 
 # -------------------------------------------------------------------------
 # Plot reduction in catch -------------------------------------------------
