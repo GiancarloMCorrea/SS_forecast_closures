@@ -19,13 +19,23 @@ catch_df$Fleet_label = fleet_info$real_fleet_name[catch_df$Fleet]
 
 # Save output data frame:
 saveRDS(ssb_status_df, file = file.path(out_folder, paste0(stock_id, '_ssb_status.rds')))
+saveRDS(catch_df, file = file.path(out_folder, paste0(stock_id, '_catch.rds')))
 
 # -------------------------------------------------------------------------
-# Plot reduction in catch -------------------------------------------------
+# Plot status-quo catch -------------------------------------------------
 
-# plot_data = catch_df %>% filter(Proj_yr %in% c(0, 1)) %>% select(Fleet_name, Proj_yr, SS_Catch, cfleet:strat)
-# plot_data = spread(plot_data, Proj_yr, SS_Catch) %>% mutate(Catch_reduction = ((`1`-`0`)/`0`)*100)
+plot_data = left_join(catch_df, fleet_info[,c('Fleet', 'Fleet_name')], by = 'Fleet')
+plot_data = plot_data %>% filter(Proj_yr %in% 0, cfleet == 'all', cseason == '1', fraction == '1', strat == '0.5') %>% 
+  select(Fleet_name, Proj_yr, SS_Catch, cfleet:strat)
+plot_data$Fleet_name = factor(plot_data$Fleet_name, levels = fleet_info$Fleet_name)
 
+g1 = ggplot(data = plot_data, aes(x = Fleet_name, y = SS_Catch*1e-03)) +
+  geom_col() +
+  ylab('Status-quo catch (thousands of tons)') + xlab(NULL) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 8))
+ggsave(file.path(out_folder, paste0(stock_id, '_stquo-catch.png')), plot = g1,
+       width = 170, height = 140, units = 'mm', dpi = 500)
 
 # -------------------------------------------------------------------------
 # Plot to compare BBmsy and FFmsy among scenarios
@@ -33,6 +43,8 @@ first_scen = 25 # plot these scenarios, from highest to lowest
 
 plot_data = ssb_status_df %>% dplyr::filter(Proj_yr == n_proj_yr) %>% 
   select(cfleet, cseason, fraction, strat, BBmsy, FFmsy)
+
+# Some filters:
 plot_data = plot_data %>% dplyr::filter(!(cseason == 'all')) # remove unrealistic scenario
 alter_scen = plot_data %>% dplyr::filter(cseason == '0') # separate TAC and status-quo
 plot_data = plot_data %>% dplyr::filter(!(cseason == '0')) # remove TAC and status-quo

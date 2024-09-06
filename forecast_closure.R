@@ -46,10 +46,6 @@ cat("Running base model with forecast...", "\n")
 r4ss::run(dir = file.path(main_folder, 'base_with_forecast'), extras = '-nohess', exe = file.path(ss_folder, ss_exe), 
           verbose = FALSE, skipfinished = FALSE)
 
-# Now use ss.par in starter  and replace in SS_temp:
-base_starter$init_values_src = 1 # use par file
-SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
-
 # -------------------------------------------------------------------------
 # Number of fisheries in SS model (exclude indices)
 n_fleets = nrow(fleet_info) 
@@ -111,9 +107,12 @@ id_list = 1
 # Copy files to temp folder:
 r4ss::copy_SS_inputs(dir.old = file.path(main_folder, 'base_with_forecast'), 
                      dir.new = file.path(main_folder, 'SS_temp'), verbose = FALSE, 
-                     copy_par = TRUE)
-# Copy BAT to remove SS files:
-# file.copy(from = 'del.bat', to = file.path(main_folder, 'SS_temp'))
+                     copy_par = TRUE, overwrite = TRUE)
+# use ss.par in starter and replace in SS_temp:
+base_starter$init_values_src = 1 # use par file
+SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'SS_temp'), overwrite = TRUE, verbose = FALSE)
+
+# Print number of scenarios
 n_scenarios = 3 + length(redist_strat)*length(close_fraction)*(n_times + n_times*n_real_fleets + n_times*length(interact_fleet))
 cat(n_scenarios, " scenarios will be run:", "\n")
 
