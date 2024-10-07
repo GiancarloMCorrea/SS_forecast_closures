@@ -6,13 +6,13 @@
 stock_id = 'BET'
 
 # Path where your SS model is saved. 
-grid_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2021/BET'
+grid_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2022/BET'
 
 # SS model folder name (should be located in 'grid_folder'):
-model_name = 'M17_h0.8_sigmaR0.4'
+model_name = 'io_h80_Gbase_Mbase_sD'
 
 # Path where outputs from this analysis will be saved:
-out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/ICCAT/2021/BET_closure'
+out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2022/BET_closure'
 dir.create(out_folder, showWarnings = FALSE)
 
 # Path where SS executable is located:
@@ -51,11 +51,7 @@ fleet_info
 
 # Add a character column to differentiate real fleets. 
 # Closures will be applied to these fleets:
-fleet_info$real_fleet_name = c('PS', 'PS', 'FS', 'FOB', 'FOB', 
-                               'BB', 'BB', 'BB', 'BB', 'LL',
-                               'LL','LL','LL','LL','LL',
-                               'LL', 'LL','LL','OTH','OTH',
-                               'OTH','OTH')
+fleet_info$real_fleet_name = c('LF', 'LL', 'LL', 'LL', 'FS', 'FS', 'OT', 'OT', 'LS', 'LS', 'BB', 'LINE', 'LL', 'FS', 'LS')
 # Save fleet infomation for reporting:
 write.csv(fleet_info, file = file.path(out_folder, paste0(stock_id, '-fleet_information.csv')), row.names = FALSE)
 
@@ -63,7 +59,8 @@ write.csv(fleet_info, file = file.path(out_folder, paste0(stock_id, '-fleet_info
 # You dont probably want to evaluate closures for all fleets, so here you can
 # select the fleets to evaluate:
 fleet_info_std = data.frame(real_fleet_name = unique(fleet_info$real_fleet_name))
-fleet_info_std$fleet_active = c(FALSE, FALSE, TRUE, FALSE, FALSE, FALSE)
+fleet_info_std
+fleet_info_std$fleet_active = c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)
 
 # -------------------------------------------------------------------------
 # Closures configuration --------------------------------------------------
@@ -71,7 +68,7 @@ close_fraction = c(1, 0.66, 0.33) # Closed fraction in a season
 # close_fraction = 1: 100% of season is closed, so projected catch is multiplied by (1-1) in that season
 # close_fraction = 0.66: 66% of season is closed, so projected catch is multiplied by (1-0.66) in that season
 # close_fraction = 0.33: 33% of season is closed, so projected catch is multiplied by (1-0.33) in that season
-redist_strat = c(0.5, 0) # Reallocation strategy
+redist_strat = c(0) # Reallocation strategy
 # redist_strat = 1: 100% redistribution of 'closed catch' among open seasons in a forecast year
 # redist_strat = 0.5: 50% redistribution of 'closed catch' among open seasons in a forecast year
 # redist_strat = 0: 0% redistribution of 'closed catch' among open seasons in a forecast year
@@ -82,7 +79,7 @@ redist_strat = c(0.5, 0) # Reallocation strategy
 interact_fleet = NULL
 
 # Annual TAC during projection period
-catch_TAC = 62000 # in tons
+catch_TAC = 80583 # in tons
 
 # Closure scenarios from TAC or status-quo?
 do_closure_from_TAC = FALSE

@@ -11,7 +11,7 @@ extract_outputs = function(scen_name) {
   # -------------------------------------------------------------------------
   # Spawning biomass:
   tmp_df1 = tmp_mod$timeseries[, c('Yr', 'Seas', 'SpawnBio')]
-  tmp_df1 = tmp_df1 %>% filter(Yr >= (first_proj_yr - scale_time))
+  tmp_df1 = tmp_df1 %>% dplyr::filter(Yr >= (first_proj_yr - scale_time))
   tmp_df1$Seas_proj = 1:n_times # Real season
   tmp_df1 = tmp_df1 %>% group_by(Yr, Seas_proj) %>% summarise(SpawnBio = sum(SpawnBio, na.rm = TRUE), .groups = 'drop')
   tmp_df1 = tmp_df1 %>% add_column(Proj_yr = rep(0:n_proj_yr, each = n_times))
@@ -19,7 +19,7 @@ extract_outputs = function(scen_name) {
   
   # -------------------------------------------------------------------------
   # Kobe:
-  tmp_df7 = tmp_mod$Kobe %>% filter(Yr >= (first_proj_yr - scale_time))
+  tmp_df7 = tmp_mod$Kobe %>% dplyr::filter(Yr >= (first_proj_yr - scale_time))
   tmp_df7 = tmp_df7 %>% add_column(Proj_yr = rep(0:n_proj_yr, each = scale_time), .after = 'Yr') %>% select(-Yr)
   tmp_df7 = tmp_df7 %>% group_by(Proj_yr) %>% summarise(BBmsy = mean(B.Bmsy), FFmsy = mean(F.Fmsy), .groups = 'drop')
   
@@ -34,7 +34,7 @@ extract_outputs = function(scen_name) {
   # -------------------------------------------------------------------------
   # Catch (calculated in SS):
   tmp_df2 = tmp_mod$timeseries[, c(2, 1, 4, grep(pattern = 'dead\\(B\\):_', x = colnames(tmp_mod$timeseries)))]
-  tmp_df2 = tmp_df2 %>% filter(Yr >= (first_proj_yr - scale_time))
+  tmp_df2 = tmp_df2 %>% dplyr::filter(Yr >= (first_proj_yr - scale_time))
   tmp_df2 = tmp_df2 %>% add_column(Seas_proj = rep(1:n_times, length.out = nrow(tmp_df2)), .before = 'Seas') # Real season
   tmp_df2 = tmp_df2 %>% group_by(Yr, Seas_proj) %>% summarise_all(list(sum)) %>% select(-c('Area', 'Seas')) %>% ungroup()
   tmp_df2 = tmp_df2 %>% add_column(Proj_yr = rep(0:n_proj_yr, each = n_times), .after = 'Yr')

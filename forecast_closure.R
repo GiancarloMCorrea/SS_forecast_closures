@@ -13,6 +13,16 @@ dir.create(file.path(out_folder, 'output_catch'), showWarnings = FALSE)
 # This is important since ss.par is used and it needs to have the right dimensions for forecast rec
 dir.create(file.path(out_folder, 'base_with_forecast'), showWarnings = FALSE)
 
+
+# -------------------------------------------------------------------------
+# Define time step in projections:
+scale_time = 1/sum(base_model$seasdurations)
+last_model_yr = base_model$endyr
+first_proj_yr = last_model_yr + 1
+last_proj_yr = last_model_yr + n_proj_yr*scale_time
+n_seasons = base_model$nseasons
+n_times = n_seasons*scale_time
+
 # --------------------------------------------------------------
 
 # Read base files:
@@ -22,7 +32,7 @@ base_fore$MSY = 2
 base_fore$Forecast = 2 # Fmsy
 base_fore$basis_for_fcast_catch_tuning = 2
 base_fore$InputBasis = 2
-base_fore$Nforecastyrs = n_proj_yr
+base_fore$Nforecastyrs = n_proj_yr*scale_time
 
 base_starter = SS_readstarter(file = file.path(grid_folder, model_name, 'starter.ss'), verbose = FALSE)
 base_starter$init_values_src = 0 # use control file
@@ -41,10 +51,12 @@ r4ss::copy_SS_inputs(dir.old = file.path(grid_folder, model_name),
 SS_writestarter(mylist = base_starter, dir = file.path(main_folder, 'base_with_forecast'), overwrite = TRUE)
 SS_writeforecast(mylist = base_fore, dir = file.path(main_folder, 'base_with_forecast'), overwrite = TRUE)
 
-# Run base model with forecast:
-cat("Running base model with forecast...", "\n")
-r4ss::run(dir = file.path(main_folder, 'base_with_forecast'), extras = '-nohess', exe = file.path(ss_folder, ss_exe), 
-          verbose = FALSE, skipfinished = FALSE)
+if(!('Report.sso' %in% list.files(path = file.path(main_folder, 'base_with_forecast')))) {
+  # Run base model with forecast:
+  cat("Running base model with forecast...", "\n")
+  r4ss::run(dir = file.path(main_folder, 'base_with_forecast'), extras = '-nohess', exe = file.path(ss_folder, ss_exe), 
+            verbose = FALSE, skipfinished = FALSE)
+}
 
 # -------------------------------------------------------------------------
 # Number of fisheries in SS model (exclude indices)
@@ -58,17 +70,8 @@ n_real_fleets = length(real_fleet_names)
 
 # -------------------------------------------------------------------------
 # Create base forecast catch df:
-# if(time_step == 'quarter') scale_time = 4
-# if(time_step == 'year') scale_time = 1
-scale_time = 1/sum(base_model$seasdurations)
-last_model_yr = base_model$endyr
-first_proj_yr = last_model_yr + 1
-last_proj_yr = last_model_yr + n_proj_yr*scale_time
-n_seasons = base_model$nseasons
-n_times = n_seasons*scale_time
-
 tmp_df = base_model$catch %>% 
-                filter(Yr %in% (first_proj_yr - scale_time*yr_avg_catch):(first_proj_yr - 1)) %>% 
+                dplyr::filter(Yr %in% (first_proj_yr - scale_time*yr_avg_catch):(first_proj_yr - 1)) %>% 
                 select(Yr, Seas, Fleet, Obs)
 tmp_df = tmp_df %>% mutate(Seas = rep(1:n_times, length.out = nrow(tmp_df))) # Real season
 tmp_df = tmp_df %>% dplyr::group_by(Seas, Fleet) %>% dplyr::summarise(Catch = mean(Obs), .groups = 'drop')
@@ -79,7 +82,7 @@ base_proj$Seas = rep(1:n_seasons, length.out = nrow(base_proj)) # Back to SS sea
 sp_proj = base_proj # this will be the TAC scenario
 
 # Tot catch:
-# sp_proj %>% filter(Yr < (first_proj_yr + 4)) %>% summarise(totcatch = sum(Catch))
+# sp_proj %>% dplyr::filter(Yr < (first_proj_yr + 4)) %>% summarise(totcatch = sum(Catch))
 
 # Calculate annual total catch per fleet during projection period:
 catch_proj_df = tmp_df %>% 
@@ -224,7 +227,7 @@ for(s in seq_along(redist_strat)) {
     # Close season by season (real_fleet by real_fleet): 
     for(i in 1:n_times) {
       for(j in 1:n_real_fleets) {
-        these_fleets = fleet_info %>% filter(real_fleet_name == real_fleet_names[j]) %>% select(fleet_number)
+        these_fleets = fleet_info %>% dplyr::filter(real_fleet_name == real_fleet_names[j]) %>% select(fleet_number)
         # Create model directory and copy SS files:
         scen_name = paste0(real_fleet_names[j], '_seas_', i,'_fraction_', close_fraction[k], '_strat_', redist_strat[s])
         # create new forecast catch df:
@@ -260,8 +263,8 @@ for(s in seq_along(redist_strat)) {
       for(l in seq_along(interact_fleet)) {
         
         for(i in 1:n_times) {
-            fleets_1 = fleet_info %>% filter(real_fleet_name == interact_fleet[[l]][1]) %>% select(fleet_number) # 'from' fleet
-            fleets_2 = fleet_info %>% filter(real_fleet_name == interact_fleet[[l]][2]) %>% select(fleet_number) # 'to' fleet
+            fleets_1 = fleet_info %>% dplyr::filter(real_fleet_name == interact_fleet[[l]][1]) %>% select(fleet_number) # 'from' fleet
+            fleets_2 = fleet_info %>% dplyr::filter(real_fleet_name == interact_fleet[[l]][2]) %>% select(fleet_number) # 'to' fleet
             # Create model directory and copy SS files:
             scen_name = paste0(interact_fleet[[l]][1], '-', interact_fleet[[l]][2], '_seas_', i,'_fraction_', close_fraction[k], '_strat_', redist_strat[s])
             # create new forecast catch df:
