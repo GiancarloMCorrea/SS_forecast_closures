@@ -4,3 +4,4 @@
 .Ruserdata
 .RDataTmp
 *.docx
+config_params_*.R

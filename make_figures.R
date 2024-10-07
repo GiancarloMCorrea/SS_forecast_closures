@@ -3,6 +3,7 @@ require(tidyr)
 require(tibble)
 require(ggplot2)
 require(quarto)
+require(r4ss)
 rm(list = ls())
 
 # Read the forecast settings:
@@ -96,7 +97,7 @@ p1 = ggplot(plot_data, aes(x = x_label, y = BBmsy, color = as.factor(status)))+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 8), 
         legend.position = "top") +
   guides(color = 'none', lty = guide_legend(title="Scenario:")) +
-  ylim(0,2)+ylab(expression("B/"*B[msy]*" in last projection year")) + xlab(NULL) 
+  ylim(0, 2.4) + ylab(expression("B/"*B[msy]*" in last projection year")) + xlab(NULL) 
 ggsave(file.path(out_folder, paste0(stock_id, '_BBmsy.png')), plot = p1,
        width = 170, height = 140, units = 'mm', dpi = 500)
 
