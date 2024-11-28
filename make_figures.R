@@ -7,7 +7,10 @@ require(r4ss)
 rm(list = ls())
 
 # Read the forecast settings:
-source('config_params.R')
+# source('config_params.R')
+out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2022/BET_closure'
+stock_id = 'BET'
+n_proj_yr = 10
 
 # Read summarised outputs:
 catch_df = readRDS(file.path(out_folder, paste0(stock_id, '_catch.rds')))
@@ -16,18 +19,18 @@ ssb_status_df = readRDS(file.path(out_folder, paste0(stock_id, '_ssb_status.rds'
 # -------------------------------------------------------------------------
 # Plot status-quo catch -------------------------------------------------
 
-plot_data = left_join(catch_df, fleet_info[,c('Fleet', 'Fleet_name')], by = 'Fleet')
-plot_data = plot_data %>% dplyr::filter(Proj_yr %in% 0, cfleet == 'all', cseason == '1', fraction == '1', strat == '0.5') %>% 
-  select(Fleet_name, Proj_yr, SS_Catch, cfleet:strat)
-plot_data$Fleet_name = factor(plot_data$Fleet_name, levels = fleet_info$Fleet_name)
-
-g1 = ggplot(data = plot_data, aes(x = Fleet_name, y = SS_Catch*1e-03)) +
-  geom_col() +
-  ylab('Status-quo catch (thousands of tons)') + xlab(NULL) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 8))
-ggsave(file.path(out_folder, paste0(stock_id, '_stquo-catch.png')), plot = g1,
-       width = 170, height = 140, units = 'mm', dpi = 500)
+# plot_data = left_join(catch_df, fleet_info[,c('Fleet', 'Fleet_name')], by = 'Fleet')
+# plot_data = plot_data %>% dplyr::filter(Proj_yr %in% 0, cfleet == 'all', cseason == '1', fraction == '1', strat == '0.5') %>% 
+#   select(Fleet_name, Proj_yr, SS_Catch, cfleet:strat)
+# plot_data$Fleet_name = factor(plot_data$Fleet_name, levels = fleet_info$Fleet_name)
+# 
+# g1 = ggplot(data = plot_data, aes(x = Fleet_name, y = SS_Catch*1e-03)) +
+#   geom_col() +
+#   ylab('Status-quo catch (thousands of tons)') + xlab(NULL) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 8))
+# ggsave(file.path(out_folder, paste0(stock_id, '_stquo-catch.png')), plot = g1,
+#        width = 170, height = 140, units = 'mm', dpi = 500)
 
 # -------------------------------------------------------------------------
 # Plot to compare BBmsy and FFmsy among scenarios

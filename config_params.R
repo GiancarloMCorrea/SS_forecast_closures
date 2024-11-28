@@ -3,16 +3,16 @@
 # Path configuration parameters ------------------------------------------------
 
 # Stock identifier:
-stock_id = 'BET'
+stock_id = 'YFT'
 
 # Path where your SS model is saved. 
-grid_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2022/BET'
+grid_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2024/YFT-20yr-scale'
 
 # SS model folder name (should be located in 'grid_folder'):
-model_name = 'io_h80_Gbase_Mbase_sD'
+model_name = '6_SplitCPUE_tag01_EC0_h0.8'
 
 # Path where outputs from this analysis will be saved:
-out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2022/BET_closure'
+out_folder = 'C:/Use/OneDrive - AZTI/Assessment_models/IOTC/2024/YFT_closure'
 dir.create(out_folder, showWarnings = FALSE)
 
 # Path where SS executable is located:
@@ -49,18 +49,21 @@ rec_type = 'deterministic'
 fleet_info = base_model$definitions %>% dplyr::filter(fleet_type == 1)
 fleet_info
 
-# Add a character column to differentiate real fleets. 
-# Closures will be applied to these fleets:
-fleet_info$real_fleet_name = c('LF', 'LL', 'LL', 'LL', 'FS', 'FS', 'OT', 'OT', 'LS', 'LS', 'BB', 'LINE', 'LL', 'FS', 'LS')
-# Save fleet infomation for reporting:
+# Add a character column to add fleet labels. These are real fleets. Then save it. 
+fleet_info$real_fleet_name = c('GILLLSFSBB','HD','GILLLSFSBB','OT','GILLLSFSBB','GILLLSFSBB','GILLLSFSBB',
+                               'GILLLSFSBB','TR','GILLLSFSBB',
+                               'GILLLSFSBB','GILLLSFSBB','GILLLSFSBB','OT','TR','GILLLSFSBB',
+                               'GILLLSFSBB','TR','GILLLSFSBB','GILLLSFSBB','LF',
+                               'GILLLSFSBB','GILLLSFSBB','GILLLSFSBB')
 write.csv(fleet_info, file = file.path(out_folder, paste0(stock_id, '-fleet_information.csv')), row.names = FALSE)
+# Add fishery group column: Closures will be applied to these groups:
+fleet_info$fleet_group = fleet_info$real_fleet_name
 
-# Fleet active:
+# Fleet group active:
 # You dont probably want to evaluate closures for all fleets, so here you can
-# select the fleets to evaluate:
-fleet_info_std = data.frame(real_fleet_name = unique(fleet_info$real_fleet_name))
-fleet_info_std
-fleet_info_std$fleet_active = c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)
+# select the fleet groups to evaluate:
+fleet_info_std = data.frame(fleet_group = unique(fleet_info$fleet_group))
+fleet_info_std$fleet_active = c(TRUE, FALSE, FALSE, FALSE, FALSE)
 
 # -------------------------------------------------------------------------
 # Closures configuration --------------------------------------------------
@@ -79,7 +82,8 @@ redist_strat = c(0) # Reallocation strategy
 interact_fleet = NULL
 
 # Annual TAC during projection period
-catch_TAC = 80583 # in tons
+catch_TAC = 421000 # in tons
 
 # Closure scenarios from TAC or status-quo?
 do_closure_from_TAC = FALSE
+

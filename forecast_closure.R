@@ -2,7 +2,7 @@ source('auxiliary_functions.R')
 source('extract_outputs.R')
 
 # Important to create forecast file:
-options(max.print=4000)
+options(max.print=100000)
 main_folder = out_folder
 
 # Create folder where SS temporal files will be saved:
@@ -39,9 +39,9 @@ base_starter$init_values_src = 0 # use control file
 base_starter$depl_basis = 2 # use Bmsy
 base_starter$depl_denom_frac = 1 # B/Bmsy
 base_starter$SPR_basis = 2 
-base_starter$F_report_units = 4 # avg F ages
-base_starter$F_age_range = c(1, max(base_model$endgrowth$int_Age))
-base_starter$F_report_basis = 2 # F/Fmsy
+base_starter$F_std_units = 4 # avg F ages
+base_starter$F_age_range = c(1, max(base_model$endgrowth$int_Age) - 2)
+base_starter$F_std_basis = 2 # F/Fmsy
 
 # Copy files from selected model folder
 r4ss::copy_SS_inputs(dir.old = file.path(grid_folder, model_name), 
@@ -65,7 +65,7 @@ n_fleets = nrow(fleet_info)
 fleet_info = fleet_info %>% dplyr::rename(fleet_number = Fleet)
 
 # Select only active fleets
-real_fleet_names = fleet_info_std$real_fleet_name[fleet_info_std$fleet_active]
+real_fleet_names = fleet_info_std$fleet_group[fleet_info_std$fleet_active]
 n_real_fleets = length(real_fleet_names)
 
 # -------------------------------------------------------------------------
